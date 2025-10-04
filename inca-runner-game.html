@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Inca - De Chile a Argentina</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #DEB887 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 90vw;
+            max-width: 1200px;
+            height: 60vh;
+            min-height: 400px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 50%, #DEB887 100%);
+            border: 5px solid #8B4513;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+            font-size: 18px;
+        }
+
+        #location {
+            background: rgba(139, 69, 19, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        #stats {
+            background: rgba(139, 69, 19, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        #message {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 300px;
+            background: rgba(139, 69, 19, 0.95);
+            color: #FFD700;
+            padding: 20px 25px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 16px;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 2px solid #FFD700;
+        }
+
+        #message button {
+            margin-top: 15px;
+            padding: 8px 20px;
+            font-size: 14px;
+            background: #FFD700;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #8B4513;
+            width: 100%;
+        }
+
+        #message button:hover {
+            background: #FFA500;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 69, 19, 0.8);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .mobile-controls {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 69, 19, 0.8);
+            border: 3px solid #FFD700;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: rgba(139, 69, 19, 1);
+        }
+
+        .jump-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .instructions {
+                display: none;
+            }
+        }
+
+        /* Estilos para orientación móvil */
+        .rotate-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 24px;
+            padding: 20px;
+        }
+
+        .rotate-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: rotatePhone 2s infinite;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(90deg); }
+            75% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Ocultar mensaje en orientación landscape */
+        @media screen and (orientation: landscape) and (max-width: 1024px) {
+            .rotate-message {
+                display: none !important;
+            }
+            body {
+                overflow: hidden;
+            }
+        }
+
+        /* Mostrar mensaje solo en portrait móvil */
+        @media screen and (orientation: portrait) and (max-width: 1024px) {
+            .rotate-message {
+                display: flex !important;
+            }
+            #gameContainer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mensaje para rotar el dispositivo -->
+    <div class="rotate-message" id="rotateMessage">
+        <div class="rotate-icon">📱</div>
+        <h2>¡Rota tu dispositivo!</h2>
+        <p>Este juego se ve mejor en modo horizontal</p>
+        <p style="font-size: 18px; margin-top: 10px;">🔄 Gira tu teléfono para jugar</p>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1200" height="400"></canvas>
+        <div id="hud">
+            <div id="location">📍 Chile - Nivel 1/3</div>
+            <div id="stats">⚡ Velocidad: 1x | 🏆 Oro: 0/5</div>
+        </div>
+        <div class="instructions">⬅️➡️ Mover | ⬆️ Saltar | Recoge 5 monedas para avanzar de país</div>
+        <div class="mobile-controls">
+            <div class="control-group">
+                <div class="control-btn" id="leftBtn">⬅️</div>
+                <div class="control-btn" id="rightBtn">➡️</div>
+            </div>
+            <div class="control-group">
+                <div class="control-btn jump-btn" id="jumpBtn">⬆️</div>
+            </div>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const game = {
+            player: {
+                x: 100,
+                y: 250,
+                width: 30,
+                height: 40,
+                speed: 5,
+                baseSpeed: 5,
+                velocityY: 0,
+                jumping: false,
+                jumpPower: 12,
+                color: '#FF6B35'
+            },
+            enemy: {
+                x: -100,
+                y: 250,
+                width: 30,
+                height: 40,
+                speed: 2,
+                velocityY: 0,
+                color: '#8B0000',
+                active: false,
+                activationTime: 3000
+            },
+            coins: [],
+            platforms: [],
+            score: 0,
+            coinsNeeded: 5,
+            speedMultiplier: 1,
+            keys: {},
+            gravity: 0.5,
+            level: 1,
+            maxLevel: 4,
+            gameOver: false,
+            won: false,
+            startTime: Date.now(),
+            backgrounds: {
+                1: { sky: '#87CEEB', ground: '#8B4513', name: 'Chile' },
+                2: { sky: '#87CEEB', ground: '#228B22', name: 'Argentina' },
+                3: { sky: '#6BA3D4', ground: '#CD853F', name: 'Bolivia' },
+                4: { sky: '#4A90E2', ground: '#D2691E', name: 'Perú' }
+            }
+        };
+
+        // Generar plataformas
+        function generatePlatforms() {
+            game.platforms = [];
+            // Suelo base
+            game.platforms.push({
+                x: 0,
+                y: canvas.height - 50,
+                width: canvas.width,
+                height: 50
+            });
+
+            // Plataformas fijas según el nivel
+            if (game.level === 1) {
+                // Chile - Plataformas en escalones
+                game.platforms.push(
+                    { x: 150, y: 320, width: 120, height: 15 },
+                    { x: 350, y: 280, width: 100, height: 15 },
+                    { x: 550, y: 240, width: 120, height: 15 },
+                    { x: 750, y: 200, width: 100, height: 15 },
+                    { x: 950, y: 160, width: 120, height: 15 },
+                    { x: 200, y: 120, width: 80, height: 15 },
+                    { x: 1000, y: 280, width: 100, height: 15 }
+                );
+            } else if (game.level === 2) {
+                // Argentina - Plataformas como pampas onduladas
+                game.platforms.push(
+                    { x: 120, y: 300, width: 140, height: 15 },
+                    { x: 320, y: 260, width: 120, height: 15 },
+                    { x: 520, y: 220, width: 140, height: 15 },
+                    { x: 720, y: 180, width: 100, height: 15 },
+                    { x: 920, y: 140, width: 120, height: 15 },
+                    { x: 180, y: 100, width: 120, height: 15 },
+                    { x: 400, y: 80, width: 140, height: 15 },
+                    { x: 600, y: 200, width: 120, height: 15 }
+                );
+            } else if (game.level === 3) {
+                // Bolivia - Plataformas en zigzag
+                game.platforms.push(
+                    { x: 100, y: 320, width: 100, height: 15 },
+                    { x: 300, y: 280, width: 120, height: 15 },
+                    { x: 500, y: 240, width: 100, height: 15 },
+                    { x: 700, y: 200, width: 120, height: 15 },
+                    { x: 900, y: 160, width: 100, height: 15 },
+                    { x: 1100, y: 120, width: 80, height: 15 },
+                    { x: 150, y: 80, width: 100, height: 15 },
+                    { x: 800, y: 100, width: 120, height: 15 }
+                );
+            } else if (game.level === 4) {
+                // Perú - Plataformas como terrazas incas
+                game.platforms.push(
+                    { x: 50, y: 300, width: 150, height: 15 },
+                    { x: 250, y: 260, width: 150, height: 15 },
+                    { x: 450, y: 220, width: 150, height: 15 },
+                    { x: 650, y: 180, width: 150, height: 15 },
+                    { x: 850, y: 140, width: 120, height: 15 },
+                    { x: 1000, y: 100, width: 120, height: 15 },
+                    { x: 100, y: 60, width: 120, height: 15 },
+                    { x: 550, y: 300, width: 100, height: 15 }
+                );
+            }
+        }
+
+        // Generar monedas
+        function generateCoins() {
+            game.coins = [];
+            for (let i = 0; i < game.coinsNeeded + 3; i++) {
+                let coinX, coinY;
+                let validPosition = false;
+                
+                // Asegurar que las monedas estén cerca de plataformas
+                while (!validPosition) {
+                    coinX = Math.random() * (canvas.width - 100) + 50;
+                    coinY = Math.random() * (canvas.height - 150) + 50;
+                    
+                    // Verificar si está cerca de alguna plataforma
+                    for (let platform of game.platforms) {
+                        if (coinX > platform.x - 50 && coinX < platform.x + platform.width + 50 &&
+                            coinY < platform.y && coinY > platform.y - 100) {
+                            validPosition = true;
+                            break;
+                        }
+                    }
+                }
+                
+                game.coins.push({
+                    x: coinX,
+                    y: coinY,
+                    size: 15,
+                    collected: false
+                });
+            }
+        }
+
+        // Controles de teclado
+        document.addEventListener('keydown', (e) => {
+            game.keys[e.key] = true;
+            
+            // Saltar
+            if ((e.key === 'ArrowUp' || e.key === ' ') && !game.player.jumping) {
+                game.player.velocityY = -game.player.jumpPower;
+                game.player.jumping = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            game.keys[e.key] = false;
+        });
+
+        // Controles táctiles
+        function setupTouchControls() {
+            const leftBtn = document.getElementById('leftBtn');
+            const rightBtn = document.getElementById('rightBtn');
+            const jumpBtn = document.getElementById('jumpBtn');
+
+            // Botón izquierda
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                game.keys['ArrowLeft'] = true;
+            });
+            leftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                game.keys['ArrowLeft'] = false;
+            });
+            leftBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                game.keys['ArrowLeft'] = true;
+            });
+            leftBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                game.keys['ArrowLeft'] = false;
+            });
+
+            // Botón derecha
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                game.keys['ArrowRight'] = true;
+            });
+            rightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                game.keys['ArrowRight'] = false;
+            });
+            rightBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                game.keys['ArrowRight'] = true;
+            });
+            rightBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                game.keys['ArrowRight'] = false;
+            });
+
+            // Botón saltar
+            jumpBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!game.player.jumping) {
+                    game.player.velocityY = -game.player.jumpPower;
+                    game.player.jumping = true;
+                }
+            });
+            jumpBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                if (!game.player.jumping) {
+                    game.player.velocityY = -game.player.jumpPower;
+                    game.player.jumping = true;
+                }
+            });
+        }
+
+        // Aplicar física a una entidad
+        function applyPhysics(entity) {
+            // Aplicar gravedad
+            entity.velocityY += game.gravity;
+            entity.y += entity.velocityY;
+
+            // Verificar colisión con plataformas
+            let onGround = false;
+            for (let platform of game.platforms) {
+                if (entity.x + entity.width > platform.x &&
+                    entity.x < platform.x + platform.width &&
+                    entity.y + entity.height >= platform.y &&
+                    entity.y + entity.height <= platform.y + platform.height &&
+                    entity.velocityY >= 0) {
+                    
+                    entity.y = platform.y - entity.height;
+                    entity.velocityY = 0;
+                    entity.jumping = false;
+                    onGround = true;
+                    break;
+                }
+            }
+
+            // Límite inferior
+            if (entity.y > canvas.height) {
+                if (entity === game.player) {
+                    game.gameOver = true;
+                    showMessage('¡Caíste al vacío! 💀', true);
+                }
+            }
+        }
+
+        // Actualizar posición del jugador
+        function updatePlayer() {
+            if (game.keys['ArrowLeft'] && game.player.x > 0) {
+                game.player.x -= game.player.speed;
+            }
+            if (game.keys['ArrowRight'] && game.player.x < canvas.width - game.player.width) {
+                game.player.x += game.player.speed;
+            }
+
+            applyPhysics(game.player);
+        }
+
+        // Actualizar enemigo
+        function updateEnemy() {
+            // Activar enemigo después del tiempo establecido
+            const currentTime = Date.now();
+            if (!game.enemy.active && currentTime - game.startTime >= game.enemy.activationTime) {
+                game.enemy.active = true;
+                game.enemy.x = canvas.width - game.enemy.width - 10; // Aparece del lado derecho
+                game.enemy.y = 100;
+                showWarning('¡CUIDADO! El conquistador te ha visto! 🗡️');
+            }
+
+            if (!game.enemy.active) return;
+
+            // IA del enemigo
+            const dx = game.player.x - game.enemy.x;
+            
+            // Movimiento horizontal hacia el jugador
+            if (Math.abs(dx) > 10) {
+                if (dx > 0 && game.enemy.x < canvas.width - game.enemy.width) {
+                    game.enemy.x += game.enemy.speed;
+                } else if (dx < 0 && game.enemy.x > 0) {
+                    game.enemy.x -= game.enemy.speed;
+                }
+            }
+
+            // Saltar si el jugador está arriba
+            if (!game.enemy.jumping && game.player.y < game.enemy.y - 50) {
+                if (Math.random() < 0.03) {
+                    game.enemy.velocityY = -game.enemy.jumpPower || -10;
+                    game.enemy.jumping = true;
+                }
+            }
+
+            applyPhysics(game.enemy);
+
+            // Verificar colisión con enemigo
+            if (checkCollision(game.player, game.enemy)) {
+                game.gameOver = true;
+                showMessage('¡Te atraparon! 💀<br>Nivel alcanzado: ' + game.level, true);
+            }
+        }
+
+        // Actualizar monedas
+        function updateCoins() {
+            game.coins.forEach(coin => {
+                if (!coin.collected) {
+                    if (checkCollision(game.player, {
+                        x: coin.x,
+                        y: coin.y,
+                        width: coin.size,
+                        height: coin.size
+                    })) {
+                        coin.collected = true;
+                        game.score++;
+                        game.speedMultiplier += 0.1;
+                        game.player.speed = game.player.baseSpeed + (game.speedMultiplier - 1) * 3;
+                        
+                        // Verificar si completó el nivel
+                        if (game.score >= game.coinsNeeded) {
+                            nextLevel();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Siguiente nivel
+        function nextLevel() {
+            game.level++;
+            
+            if (game.level > game.maxLevel) {
+                game.won = true;
+                showMessage('¡VICTORIA! 🎉<br>¡Llegaste a Perú!<br>Oro total: ' + game.score, true);
+                return;
+            }
+
+            game.score = 0;
+            game.coinsNeeded = 5 + (game.level - 1) * 2;
+            game.enemy.speed += 0.3;
+            game.player.x = 100;
+            game.player.y = 100;
+            game.player.velocityY = 0;
+            game.player.jumping = false;
+            game.enemy.x = canvas.width - game.enemy.width - 10; // Aparece del lado derecho
+            game.enemy.y = 100;
+            game.enemy.velocityY = 0;
+            game.enemy.jumping = false;
+            
+            generatePlatforms();
+            generateCoins();
+            
+            const bg = game.backgrounds[game.level];
+            showWarning('¡Llegaste a ' + bg.name + '! 🎊<br>Nivel ' + game.level + '/4<br>Recoge ' + game.coinsNeeded + ' monedas');
+        }
+
+        // Verificar colisiones
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Dibujar jugador (Inca)
+        function drawPlayer() {
+            // Cuerpo
+            ctx.fillStyle = '#FF6B35';
+            ctx.fillRect(game.player.x, game.player.y + 10, game.player.width, game.player.height - 10);
+            
+            // Cabeza
+            ctx.fillStyle = '#D2691E';
+            ctx.beginPath();
+            ctx.arc(game.player.x + game.player.width/2, game.player.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Tocado inca
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(game.player.x + 5, game.player.y - 8, game.player.width - 10, 5);
+        }
+
+        // Dibujar enemigo (Español)
+        function drawEnemy() {
+            if (!game.enemy.active) return;
+            
+            // Cuerpo
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(game.enemy.x, game.enemy.y + 10, game.enemy.width, game.enemy.height - 10);
+            
+            // Cabeza
+            ctx.fillStyle = '#FFF5EE';
+            ctx.beginPath();
+            ctx.arc(game.enemy.x + game.enemy.width/2, game.enemy.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Casco
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(game.enemy.x + 5, game.enemy.y - 10, game.enemy.width - 10, 8);
+        }
+
+        // Dibujar monedas
+        function drawCoins() {
+            game.coins.forEach(coin => {
+                if (!coin.collected) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFA500';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+        }
+
+        // Dibujar plataformas
+        function drawPlatforms() {
+            const bg = game.backgrounds[game.level];
+            
+            game.platforms.forEach((platform, index) => {
+                // Dibujar base de la plataforma según el país
+                if (game.level === 1) {
+                    // Chile - Piedras andinas
+                    drawChileanPlatform(platform);
+                } else if (game.level === 2) {
+                    // Argentina - Pampas
+                    drawArgentinianPlatform(platform);
+                } else if (game.level === 3) {
+                    // Bolivia - Altiplano
+                    drawBolivianPlatform(platform);
+                } else if (game.level === 4) {
+                    // Perú - Piedras incas
+                    drawIncaPlatform(platform);
+                }
+                
+                // Borde superior común
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            });
+        }
+
+        function drawChileanPlatform(platform) {
+            // Plataforma de piedra andina
+            ctx.fillStyle = '#8B7D6B';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            // Textura de piedra
+            for (let i = 0; i < platform.width; i += 10) {
+                ctx.fillStyle = i % 20 ? '#A0A0A0' : '#909090';
+                ctx.fillRect(platform.x + i, platform.y, 10, platform.height);
+            }
+        }
+
+        function drawArgentinianPlatform(platform) {
+            // Plataforma de tierra fértil
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            // Césped en la parte superior
+            ctx.fillStyle = '#32CD32';
+            ctx.fillRect(platform.x, platform.y, platform.width, 3);
+        }
+
+        function drawBolivianPlatform(platform) {
+            // Plataforma de altiplano
+            ctx.fillStyle = '#DEB887';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            // Patrón de sal
+            for (let i = 0; i < platform.width; i += 5) {
+                ctx.fillStyle = i % 10 ? '#F5F5DC' : '#FFFAF0';
+                ctx.fillRect(platform.x + i, platform.y, 5, platform.height);
+            }
+        }
+
+        function drawIncaPlatform(platform) {
+            // Plataforma de piedra inca
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            // Patrón de bloques incas
+            const blockWidth = platform.width / 4;
+            for (let i = 0; i < 4; i++) {
+                ctx.strokeStyle = '#2F4F4F';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(platform.x + i * blockWidth, platform.y, blockWidth, platform.height);
+            }
+        }
+
+        // Dibujar fondo
+        function drawBackground() {
+            const bg = game.backgrounds[game.level];
+            
+            // Cielo con gradiente mejorado
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, bg.sky);
+            gradient.addColorStop(0.7, '#98FB98');
+            gradient.addColorStop(1, bg.ground);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Detalles específicos de cada país
+            if (game.level === 1) {
+                // Chile: Cordillera de los Andes
+                drawMountainRange();
+                drawChileanFlag();
+            } else if (game.level === 2) {
+                // Argentina: Pampas y elementos característicos
+                drawPampas();
+                drawArgentinianElements();
+            } else if (game.level === 3) {
+                // Bolivia: Altiplano y Salar
+                drawAltiplano();
+                drawBolivianLake();
+            } else if (game.level === 4) {
+                // Perú: Machu Picchu y montañas
+                drawMachuPicchu();
+                drawPeruvianMountains();
+            }
+        }
+
+        // Funciones auxiliares para dibujar fondos
+        function drawMountainRange() {
+            // Montañas nevadas más realistas
+            for (let i = 0; i < 8; i++) {
+                ctx.fillStyle = i % 2 ? '#E6E6FA' : '#F0F8FF';
+                ctx.beginPath();
+                ctx.moveTo(i * 150, canvas.height);
+                ctx.lineTo(i * 150 + 75, canvas.height - 80 - Math.random() * 40);
+                ctx.lineTo(i * 150 + 150, canvas.height);
+                ctx.fill();
+            }
+        }
+
+        function drawChileanFlag() {
+            // Bandera chilena pequeña
+            ctx.fillStyle = '#0033A0';
+            ctx.fillRect(50, 20, 60, 20);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(50, 30, 60, 10);
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(50, 30, 60, 10);
+        }
+
+        function drawPampas() {
+            // Pampas verdes onduladas
+            ctx.fillStyle = '#228B22';
+            for (let i = 0; i < canvas.width; i += 20) {
+                ctx.fillRect(i, canvas.height - 60 + Math.sin(i * 0.02) * 10, 20, 60);
+            }
+        }
+
+        function drawArgentinianElements() {
+            // Sol de Argentina
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(1000, 50, 25, 0, Math.PI * 2);
+            ctx.fill();
+            // Rayos del sol
+            for (let i = 0; i < 16; i++) {
+                ctx.beginPath();
+                ctx.moveTo(1000, 50);
+                ctx.lineTo(1000 + Math.cos(i * Math.PI / 8) * 40, 50 + Math.sin(i * Math.PI / 8) * 40);
+                ctx.stroke();
+            }
+        }
+
+        function drawAltiplano() {
+            // Altiplano boliviano
+            ctx.fillStyle = '#DEB887';
+            ctx.fillRect(0, canvas.height - 80, canvas.width, 30);
+        }
+
+        function drawBolivianLake() {
+            // Lago Titicaca
+            ctx.fillStyle = '#4169E1';
+            ctx.beginPath();
+            ctx.ellipse(800, canvas.height - 50, 120, 30, 0, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawMachuPicchu() {
+            // Estructura de Machu Picchu
+            ctx.fillStyle = '#8B7D6B';
+            // Base principal
+            ctx.fillRect(700, canvas.height - 120, 200, 60);
+            // Terrazas
+            ctx.fillRect(720, canvas.height - 140, 160, 20);
+            ctx.fillRect(740, canvas.height - 160, 120, 20);
+            ctx.fillRect(760, canvas.height - 180, 80, 20);
+        }
+
+        function drawPeruvianMountains() {
+            // Montañas peruanas
+            ctx.fillStyle = '#8B4513';
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * 200, canvas.height);
+                ctx.lineTo(i * 200 + 100, canvas.height - 100 - i * 10);
+                ctx.lineTo(i * 200 + 200, canvas.height);
+                ctx.fill();
+            }
+        }
+
+        // Actualizar HUD
+        function updateHUD() {
+            const bg = game.backgrounds[game.level];
+            document.getElementById('location').textContent = '📍 ' + bg.name + ' - Nivel ' + game.level + '/' + game.maxLevel;
+            document.getElementById('stats').textContent = 
+                '⚡ Velocidad: ' + game.speedMultiplier.toFixed(1) + 'x | 🏆 Oro: ' + game.score + '/' + game.coinsNeeded;
+        }
+
+        // Mostrar mensaje
+        function showMessage(text, showRestart) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = text;
+            if (showRestart) {
+                msgDiv.innerHTML += '<br><button onclick="restartGame()">Jugar de Nuevo</button>';
+            }
+            msgDiv.style.display = 'block';
+        }
+
+        // Mostrar advertencia temporal
+        function showWarning(text) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = text;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 2500);
+        }
+
+        // Reiniciar juego
+        function restartGame() {
+            game.player.x = 100;
+            game.player.y = 100;
+            game.player.speed = game.player.baseSpeed;
+            game.player.velocityY = 0;
+            game.player.jumping = false;
+            game.enemy.x = -100;
+            game.enemy.y = 100;
+            game.enemy.speed = 2;
+            game.enemy.velocityY = 0;
+            game.enemy.jumping = false;
+            game.enemy.active = false;
+            game.score = 0;
+            game.coinsNeeded = 5;
+            game.speedMultiplier = 1;
+            game.level = 1;
+            game.gameOver = false;
+            game.won = false;
+            game.startTime = Date.now();
+            generatePlatforms();
+            generateCoins();
+            document.getElementById('message').style.display = 'none';
+            gameLoop();
+        }
+
+        // Loop principal
+        function gameLoop() {
+            if (game.gameOver || game.won) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBackground();
+            drawPlatforms();
+            drawCoins();
+            updatePlayer();
+            updateEnemy();
+            updateCoins();
+            drawPlayer();
+            drawEnemy();
+            updateHUD();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Iniciar juego
+        generatePlatforms();
+        generateCoins();
+        setupTouchControls();
+        setupOrientationHandler();
+        gameLoop();
+
+        // Manejar orientación del dispositivo
+        function setupOrientationHandler() {
+            function checkOrientation() {
+                const rotateMessage = document.getElementById('rotateMessage');
+                const gameContainer = document.getElementById('gameContainer');
+                
+                // Detectar si es móvil
+                const isMobile = window.innerWidth <= 1024;
+                
+                if (isMobile) {
+                    // En móviles, mostrar mensaje si está en portrait
+                    if (window.innerHeight > window.innerWidth) {
+                        rotateMessage.style.display = 'flex';
+                        gameContainer.style.display = 'none';
+                    } else {
+                        rotateMessage.style.display = 'none';
+                        gameContainer.style.display = 'block';
+                    }
+                } else {
+                    // En desktop, siempre mostrar el juego
+                    rotateMessage.style.display = 'none';
+                    gameContainer.style.display = 'block';
+                }
+            }
+
+            // Verificar orientación al cargar
+            checkOrientation();
+            
+            // Verificar orientación cuando cambie
+            window.addEventListener('orientationchange', () => {
+                setTimeout(checkOrientation, 100);
+            });
+            
+            // Verificar orientación cuando se redimensione la ventana
+            window.addEventListener('resize', checkOrientation);
+        }
+    </script>
+</body>
+</html>
