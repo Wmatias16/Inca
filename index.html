@@ -2,7 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Escape Inca - De Chile a Argentina</title>
     <style>
         * {
@@ -19,19 +22,46 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         #gameContainer {
             position: relative;
-            width: 90vw;
+            width: 95vw;
             max-width: 1200px;
-            height: 60vh;
-            min-height: 400px;
+            height: 75vh;
+            min-height: 350px;
             background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 50%, #DEB887 100%);
-            border: 5px solid #8B4513;
-            border-radius: 10px;
+            border: 3px solid #8B4513;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* Estilos específicos para móviles */
+        @media (max-width: 768px) {
+            body {
+                min-height: 100dvh; /* Usa dynamic viewport height */
+                padding: 5px;
+            }
+            
+            #gameContainer {
+                width: 98vw;
+                height: 85dvh; /* Considera la barra de navegación */
+                min-height: 300px;
+                border: 2px solid #8B4513;
+                border-radius: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #gameContainer {
+                width: 100vw;
+                height: 90dvh;
+                border-radius: 0;
+                border: none;
+            }
         }
 
         #gameCanvas {
@@ -42,50 +72,80 @@
 
         #hud {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
+            top: 8px;
+            left: 8px;
+            right: 8px;
             display: flex;
             justify-content: space-between;
             color: white;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             z-index: 10;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         #location {
-            background: rgba(139, 69, 19, 0.8);
-            padding: 10px 15px;
-            border-radius: 5px;
+            background: rgba(139, 69, 19, 0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
         #stats {
-            background: rgba(139, 69, 19, 0.8);
-            padding: 10px 15px;
-            border-radius: 5px;
+            background: rgba(139, 69, 19, 0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        /* HUD responsive para móviles */
+        @media (max-width: 768px) {
+            #hud {
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                font-size: 14px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            #location, #stats {
+                padding: 6px 10px;
+                text-align: center;
+                border-radius: 3px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #hud {
+                font-size: 12px;
+            }
+            
+            #location, #stats {
+                padding: 4px 8px;
+            }
         }
 
         #message {
             position: absolute;
-            top: 60px;
-            right: 10px;
-            width: 300px;
-            background: rgba(139, 69, 19, 0.95);
+            top: 50px;
+            right: 8px;
+            width: 280px;
+            background: rgba(139, 69, 19, 0.96);
             color: #FFD700;
-            padding: 20px 25px;
-            border-radius: 10px;
+            padding: 18px 22px;
+            border-radius: 8px;
             text-align: left;
-            font-size: 16px;
+            font-size: 15px;
             display: none;
             z-index: 100;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.6);
             border: 2px solid #FFD700;
         }
 
         #message button {
-            margin-top: 15px;
-            padding: 8px 20px;
+            margin-top: 12px;
+            padding: 10px 18px;
             font-size: 14px;
             background: #FFD700;
             border: none;
@@ -94,10 +154,44 @@
             font-weight: bold;
             color: #8B4513;
             width: 100%;
+            touch-action: manipulation;
         }
 
         #message button:hover {
             background: #FFA500;
+        }
+
+        #message button:active {
+            transform: scale(0.98);
+        }
+
+        /* Mensajes responsive para móviles */
+        @media (max-width: 768px) {
+            #message {
+                top: 80px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                width: 90vw;
+                max-width: 350px;
+                font-size: 14px;
+                padding: 15px 18px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #message {
+                top: 100px;
+                width: 95vw;
+                font-size: 13px;
+                padding: 12px 15px;
+            }
+            
+            #message button {
+                padding: 12px 16px;
+                font-size: 15px;
+            }
         }
 
         .instructions {
@@ -115,47 +209,89 @@
 
         .mobile-controls {
             position: absolute;
-            bottom: 60px;
+            bottom: 40px;
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 15px;
             pointer-events: none;
         }
 
         .control-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             pointer-events: auto;
         }
 
         .control-btn {
-            width: 60px;
-            height: 60px;
-            background: rgba(139, 69, 19, 0.8);
+            width: 65px;
+            height: 65px;
+            background: rgba(139, 69, 19, 0.9);
             border: 3px solid #FFD700;
             border-radius: 50%;
             color: white;
-            font-size: 24px;
+            font-size: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             user-select: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
             transition: all 0.1s ease;
+            touch-action: manipulation; /* Optimiza para touch */
         }
 
         .control-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
             background: rgba(139, 69, 19, 1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
 
         .jump-btn {
-            width: 80px;
-            height: 80px;
-            font-size: 30px;
+            width: 85px;
+            height: 85px;
+            font-size: 32px;
+        }
+
+        /* Controles móviles específicos */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                bottom: 20px;
+                padding: 0 10px;
+            }
+            
+            .control-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            
+            .jump-btn {
+                width: 90px;
+                height: 90px;
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-controls {
+                bottom: 15px;
+                padding: 0 8px;
+            }
+            
+            .control-btn {
+                width: 75px;
+                height: 75px;
+                font-size: 30px;
+                border: 2px solid #FFD700;
+            }
+            
+            .jump-btn {
+                width: 95px;
+                height: 95px;
+                font-size: 36px;
+            }
         }
 
         @media (max-width: 600px) {
@@ -172,20 +308,20 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: white;
             z-index: 9999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             padding: 20px;
         }
 
         .rotate-icon {
-            font-size: 80px;
-            margin: 20px 0;
+            font-size: 70px;
+            margin: 15px 0;
             animation: rotatePhone 2s infinite;
         }
 
@@ -197,7 +333,7 @@
             100% { transform: rotate(0deg); }
         }
 
-        /* Ocultar mensaje en orientación landscape */
+        /* Mejorar detección de orientación para diferentes dispositivos */
         @media screen and (orientation: landscape) and (max-width: 1024px) {
             .rotate-message {
                 display: none !important;
@@ -207,13 +343,24 @@
             }
         }
 
-        /* Mostrar mensaje solo en portrait móvil */
-        @media screen and (orientation: portrait) and (max-width: 1024px) {
+        /* Solo mostrar en portrait para dispositivos pequeños */
+        @media screen and (orientation: portrait) and (max-width: 768px) and (max-height: 1024px) {
             .rotate-message {
                 display: flex !important;
             }
             #gameContainer {
                 display: none;
+            }
+        }
+
+        /* Para dispositivos muy pequeños en portrait */
+        @media screen and (orientation: portrait) and (max-width: 480px) {
+            .rotate-message {
+                display: flex !important;
+                font-size: 18px;
+            }
+            .rotate-icon {
+                font-size: 60px;
             }
         }
     </style>
@@ -233,7 +380,7 @@
             <div id="location">📍 Chile - Nivel 1/3</div>
             <div id="stats">⚡ Velocidad: 1x | 🏆 Oro: 0/5</div>
         </div>
-        <div class="instructions">⬅️➡️ Mover | ⬆️ Saltar | Recoge 5 monedas para avanzar de país</div>
+        <div class="instructions">⬅️➡️ Mover | ⬆️ Saltar | ⬆️⬆️ Salto Doble | Recoge 5 monedas para avanzar de país</div>
         <div class="mobile-controls">
             <div class="control-group">
                 <div class="control-btn" id="leftBtn">⬅️</div>
@@ -250,6 +397,39 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        // Cargar imágenes de fondo de países
+        const countryImages = {
+            chile: new Image(),
+            argentina: new Image(),
+            bolivia: new Image(),
+            peru: new Image()
+        };
+
+        // Cargar las imágenes
+        countryImages.chile.src = 'chile.jpg';
+        countryImages.argentina.src = 'argentina.jpg';
+        countryImages.bolivia.src = 'bolivia.jpg';
+        countryImages.peru.src = 'peru.jpg';
+
+        // Variable para verificar si las imágenes están cargadas
+        let imagesLoaded = 0;
+        const totalImages = 4;
+
+        function onImageLoad() {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                console.log('Todas las imágenes de países han sido cargadas');
+            }
+        }
+
+        // Agregar eventos de carga para cada imagen
+        Object.values(countryImages).forEach(img => {
+            img.addEventListener('load', onImageLoad);
+            img.addEventListener('error', (e) => {
+                console.warn('Error cargando imagen:', e.target.src);
+            });
+        });
+
         const game = {
             player: {
                 x: 100,
@@ -261,6 +441,9 @@
                 velocityY: 0,
                 jumping: false,
                 jumpPower: 12,
+                doubleJumpPower: 10,
+                canDoubleJump: false,
+                hasDoubleJumped: false,
                 color: '#FF6B35'
             },
             enemy: {
@@ -391,10 +574,21 @@
         document.addEventListener('keydown', (e) => {
             game.keys[e.key] = true;
             
-            // Saltar
-            if ((e.key === 'ArrowUp' || e.key === ' ') && !game.player.jumping) {
-                game.player.velocityY = -game.player.jumpPower;
-                game.player.jumping = true;
+            // Saltar o salto doble
+            if ((e.key === 'ArrowUp' || e.key === ' ')) {
+                // Primer salto
+                if (!game.player.jumping) {
+                    game.player.velocityY = -game.player.jumpPower;
+                    game.player.jumping = true;
+                    game.player.canDoubleJump = true;
+                    game.player.hasDoubleJumped = false;
+                }
+                // Segundo salto (salto doble)
+                else if (game.player.canDoubleJump && !game.player.hasDoubleJumped) {
+                    game.player.velocityY = -game.player.doubleJumpPower;
+                    game.player.hasDoubleJumped = true;
+                    game.player.canDoubleJump = false;
+                }
             }
         });
 
@@ -447,16 +641,34 @@
             // Botón saltar
             jumpBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                // Primer salto
                 if (!game.player.jumping) {
                     game.player.velocityY = -game.player.jumpPower;
                     game.player.jumping = true;
+                    game.player.canDoubleJump = true;
+                    game.player.hasDoubleJumped = false;
+                }
+                // Segundo salto (salto doble)
+                else if (game.player.canDoubleJump && !game.player.hasDoubleJumped) {
+                    game.player.velocityY = -game.player.doubleJumpPower;
+                    game.player.hasDoubleJumped = true;
+                    game.player.canDoubleJump = false;
                 }
             });
             jumpBtn.addEventListener('mousedown', (e) => {
                 e.preventDefault();
+                // Primer salto
                 if (!game.player.jumping) {
                     game.player.velocityY = -game.player.jumpPower;
                     game.player.jumping = true;
+                    game.player.canDoubleJump = true;
+                    game.player.hasDoubleJumped = false;
+                }
+                // Segundo salto (salto doble)
+                else if (game.player.canDoubleJump && !game.player.hasDoubleJumped) {
+                    game.player.velocityY = -game.player.doubleJumpPower;
+                    game.player.hasDoubleJumped = true;
+                    game.player.canDoubleJump = false;
                 }
             });
         }
@@ -479,6 +691,13 @@
                     entity.y = platform.y - entity.height;
                     entity.velocityY = 0;
                     entity.jumping = false;
+                    
+                    // Reset del salto doble cuando toca el suelo
+                    if (entity === game.player) {
+                        entity.canDoubleJump = false;
+                        entity.hasDoubleJumped = false;
+                    }
+                    
                     onGround = true;
                     break;
                 }
@@ -588,6 +807,8 @@
             game.player.y = 100;
             game.player.velocityY = 0;
             game.player.jumping = false;
+            game.player.canDoubleJump = false;
+            game.player.hasDoubleJumped = false;
             game.enemy.x = canvas.width - game.enemy.width - 10; // Aparece del lado derecho
             game.enemy.y = 100;
             game.enemy.velocityY = 0;
@@ -623,6 +844,30 @@
             // Tocado inca
             ctx.fillStyle = '#FFD700';
             ctx.fillRect(game.player.x + 5, game.player.y - 8, game.player.width - 10, 5);
+            
+            // Efecto visual para salto doble
+            if (game.player.hasDoubleJumped && game.player.velocityY < 0) {
+                // Círculo de energía alrededor del jugador
+                ctx.strokeStyle = '#00FFFF';
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.arc(game.player.x + game.player.width/2, game.player.y + game.player.height/2, 25, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Partículas brillantes
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const sparkX = game.player.x + game.player.width/2 + Math.cos(angle) * 20;
+                    const sparkY = game.player.y + game.player.height/2 + Math.sin(angle) * 20;
+                    
+                    ctx.fillStyle = '#FFFF00';
+                    ctx.beginPath();
+                    ctx.arc(sparkX, sparkY, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1.0;
+            }
         }
 
         // Dibujar enemigo (Español)
@@ -734,15 +979,46 @@
         function drawBackground() {
             const bg = game.backgrounds[game.level];
             
-            // Cielo con gradiente mejorado
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, bg.sky);
-            gradient.addColorStop(0.7, '#98FB98');
-            gradient.addColorStop(1, bg.ground);
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Determinar qué imagen de país usar
+            let countryImage = null;
+            switch(game.level) {
+                case 1:
+                    countryImage = countryImages.chile;
+                    break;
+                case 2:
+                    countryImage = countryImages.argentina;
+                    break;
+                case 3:
+                    countryImage = countryImages.bolivia;
+                    break;
+                case 4:
+                    countryImage = countryImages.peru;
+                    break;
+            }
 
-            // Detalles específicos de cada país
+            // Si la imagen está cargada, usarla como fondo
+            if (countryImage && countryImage.complete && countryImage.naturalWidth > 0) {
+                // Dibujar la imagen de fondo ajustada al canvas
+                ctx.drawImage(countryImage, 0, 0, canvas.width, canvas.height);
+                
+                // Aplicar una superposición semitransparente para mejorar la visibilidad del juego
+                const overlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                overlay.addColorStop(0, 'rgba(135, 206, 235, 0.3)'); // Azul cielo semitransparente
+                overlay.addColorStop(0.7, 'rgba(152, 251, 152, 0.2)'); // Verde semitransparente
+                overlay.addColorStop(1, 'rgba(222, 184, 135, 0.3)'); // Beige semitransparente
+                ctx.fillStyle = overlay;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                // Fallback: usar el gradiente original si la imagen no está disponible
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, bg.sky);
+                gradient.addColorStop(0.7, '#98FB98');
+                gradient.addColorStop(1, bg.ground);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Detalles específicos de cada país (mantener los elementos decorativos)
             if (game.level === 1) {
                 // Chile: Cordillera de los Andes
                 drawMountainRange();
@@ -764,85 +1040,103 @@
 
         // Funciones auxiliares para dibujar fondos
         function drawMountainRange() {
-            // Montañas nevadas más realistas
+            // Montañas nevadas más sutiles para complementar la imagen de fondo
+            ctx.globalAlpha = 0.4;
             for (let i = 0; i < 8; i++) {
                 ctx.fillStyle = i % 2 ? '#E6E6FA' : '#F0F8FF';
                 ctx.beginPath();
                 ctx.moveTo(i * 150, canvas.height);
-                ctx.lineTo(i * 150 + 75, canvas.height - 80 - Math.random() * 40);
+                ctx.lineTo(i * 150 + 75, canvas.height - 60 - Math.random() * 30);
                 ctx.lineTo(i * 150 + 150, canvas.height);
                 ctx.fill();
             }
+            ctx.globalAlpha = 1.0;
         }
 
         function drawChileanFlag() {
-            // Bandera chilena pequeña
+            // Bandera chilena pequeña y sutil
+            ctx.globalAlpha = 0.8;
             ctx.fillStyle = '#0033A0';
-            ctx.fillRect(50, 20, 60, 20);
+            ctx.fillRect(50, 20, 40, 15);
             ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(50, 30, 60, 10);
+            ctx.fillRect(50, 27, 40, 8);
             ctx.fillStyle = '#FF0000';
-            ctx.fillRect(50, 30, 60, 10);
+            ctx.fillRect(50, 27, 40, 8);
+            ctx.globalAlpha = 1.0;
         }
 
         function drawPampas() {
-            // Pampas verdes onduladas
+            // Pampas verdes onduladas más sutiles
+            ctx.globalAlpha = 0.3;
             ctx.fillStyle = '#228B22';
             for (let i = 0; i < canvas.width; i += 20) {
-                ctx.fillRect(i, canvas.height - 60 + Math.sin(i * 0.02) * 10, 20, 60);
+                ctx.fillRect(i, canvas.height - 50 + Math.sin(i * 0.02) * 8, 20, 50);
             }
+            ctx.globalAlpha = 1.0;
         }
 
         function drawArgentinianElements() {
-            // Sol de Argentina
+            // Sol de Argentina más sutil
+            ctx.globalAlpha = 0.6;
             ctx.fillStyle = '#FFD700';
             ctx.beginPath();
-            ctx.arc(1000, 50, 25, 0, Math.PI * 2);
+            ctx.arc(1000, 50, 20, 0, Math.PI * 2);
             ctx.fill();
-            // Rayos del sol
-            for (let i = 0; i < 16; i++) {
+            // Rayos del sol más sutiles
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 12; i++) {
                 ctx.beginPath();
                 ctx.moveTo(1000, 50);
-                ctx.lineTo(1000 + Math.cos(i * Math.PI / 8) * 40, 50 + Math.sin(i * Math.PI / 8) * 40);
+                ctx.lineTo(1000 + Math.cos(i * Math.PI / 6) * 30, 50 + Math.sin(i * Math.PI / 6) * 30);
                 ctx.stroke();
             }
+            ctx.globalAlpha = 1.0;
         }
 
         function drawAltiplano() {
-            // Altiplano boliviano
+            // Altiplano boliviano más sutil
+            ctx.globalAlpha = 0.4;
             ctx.fillStyle = '#DEB887';
-            ctx.fillRect(0, canvas.height - 80, canvas.width, 30);
+            ctx.fillRect(0, canvas.height - 60, canvas.width, 25);
+            ctx.globalAlpha = 1.0;
         }
 
         function drawBolivianLake() {
-            // Lago Titicaca
+            // Lago Titicaca más sutil
+            ctx.globalAlpha = 0.5;
             ctx.fillStyle = '#4169E1';
             ctx.beginPath();
-            ctx.ellipse(800, canvas.height - 50, 120, 30, 0, 0, 2 * Math.PI);
+            ctx.ellipse(800, canvas.height - 40, 100, 25, 0, 0, 2 * Math.PI);
             ctx.fill();
+            ctx.globalAlpha = 1.0;
         }
 
         function drawMachuPicchu() {
-            // Estructura de Machu Picchu
+            // Estructura de Machu Picchu más sutil
+            ctx.globalAlpha = 0.5;
             ctx.fillStyle = '#8B7D6B';
             // Base principal
-            ctx.fillRect(700, canvas.height - 120, 200, 60);
+            ctx.fillRect(700, canvas.height - 100, 150, 45);
             // Terrazas
-            ctx.fillRect(720, canvas.height - 140, 160, 20);
-            ctx.fillRect(740, canvas.height - 160, 120, 20);
-            ctx.fillRect(760, canvas.height - 180, 80, 20);
+            ctx.fillRect(720, canvas.height - 115, 120, 15);
+            ctx.fillRect(740, canvas.height - 130, 90, 15);
+            ctx.fillRect(760, canvas.height - 145, 60, 15);
+            ctx.globalAlpha = 1.0;
         }
 
         function drawPeruvianMountains() {
-            // Montañas peruanas
+            // Montañas peruanas más sutiles
+            ctx.globalAlpha = 0.4;
             ctx.fillStyle = '#8B4513';
             for (let i = 0; i < 6; i++) {
                 ctx.beginPath();
                 ctx.moveTo(i * 200, canvas.height);
-                ctx.lineTo(i * 200 + 100, canvas.height - 100 - i * 10);
+                ctx.lineTo(i * 200 + 100, canvas.height - 80 - i * 8);
                 ctx.lineTo(i * 200 + 200, canvas.height);
                 ctx.fill();
             }
+            ctx.globalAlpha = 1.0;
         }
 
         // Actualizar HUD
@@ -880,6 +1174,8 @@
             game.player.speed = game.player.baseSpeed;
             game.player.velocityY = 0;
             game.player.jumping = false;
+            game.player.canDoubleJump = false;
+            game.player.hasDoubleJumped = false;
             game.enemy.x = -100;
             game.enemy.y = 100;
             game.enemy.speed = 2;
@@ -931,35 +1227,71 @@
                 const rotateMessage = document.getElementById('rotateMessage');
                 const gameContainer = document.getElementById('gameContainer');
                 
-                // Detectar si es móvil
-                const isMobile = window.innerWidth <= 1024;
+                // Detectar si es móvil usando múltiples métodos
+                const isMobile = window.innerWidth <= 768 || 
+                                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                // Usar dynamic viewport height para mejor compatibilidad
+                const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
                 
                 if (isMobile) {
-                    // En móviles, mostrar mensaje si está en portrait
-                    if (window.innerHeight > window.innerWidth) {
+                    // En móviles, mostrar mensaje si está en portrait o muy pequeño
+                    if (viewportHeight > viewportWidth || viewportWidth < 600) {
                         rotateMessage.style.display = 'flex';
                         gameContainer.style.display = 'none';
+                        // Forzar que el body use toda la pantalla
+                        document.body.style.height = '100vh';
+                        document.body.style.overflow = 'hidden';
                     } else {
                         rotateMessage.style.display = 'none';
                         gameContainer.style.display = 'block';
+                        document.body.style.height = '100vh';
+                        document.body.style.overflow = 'hidden';
                     }
                 } else {
                     // En desktop, siempre mostrar el juego
                     rotateMessage.style.display = 'none';
                     gameContainer.style.display = 'block';
+                    document.body.style.height = '100vh';
+                    document.body.style.overflow = 'hidden';
                 }
             }
 
             // Verificar orientación al cargar
             checkOrientation();
             
-            // Verificar orientación cuando cambie
+            // Verificar orientación cuando cambie (con debounce)
+            let orientationTimeout;
             window.addEventListener('orientationchange', () => {
-                setTimeout(checkOrientation, 100);
+                clearTimeout(orientationTimeout);
+                orientationTimeout = setTimeout(checkOrientation, 150);
             });
             
             // Verificar orientación cuando se redimensione la ventana
-            window.addEventListener('resize', checkOrientation);
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(checkOrientation, 100);
+            });
+            
+            // Manejar cambios en el visual viewport (útil para móviles)
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(checkOrientation, 100);
+                });
+            }
+            
+            // Prevenir zoom en iOS
+            document.addEventListener('gesturestart', function (e) {
+                e.preventDefault();
+            });
+            
+            // Prevenir scroll bounce en iOS
+            document.addEventListener('touchmove', function (e) {
+                if (e.scale !== 1) { e.preventDefault(); }
+            }, { passive: false });
         }
     </script>
 </body>
