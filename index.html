@@ -1452,26 +1452,44 @@
                 const isMobile = window.innerWidth <= 768 || 
                                 /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 
-                // Usar dynamic viewport height para mejor compatibilidad
-                const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+                // Calcular altura real disponible considerando barras del navegador
+                let viewportHeight, viewportWidth;
+                
+                if (window.visualViewport) {
+                    // Usar visualViewport para obtener el espacio visible real (sin barras del navegador)
+                    viewportHeight = window.visualViewport.height;
+                    viewportWidth = window.visualViewport.width;
+                } else {
+                    // Fallback para navegadores que no soportan visualViewport
+                    viewportHeight = window.innerHeight;
+                    viewportWidth = window.innerWidth;
+                }
                 
                 if (isMobile) {
+                    // Aplicar altura calculada al body y contenedor
+                    document.body.style.height = viewportHeight + 'px';
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Ajustar gameContainer con altura exacta
+                    gameContainer.style.height = viewportHeight + 'px';
+                    gameContainer.style.width = viewportWidth + 'px';
+                    
                     // Ajustar canvas para viewport dinámico móvil
                     canvas.width = viewportWidth;
                     canvas.height = viewportHeight;
+                    
+                    // Regenerar plataformas con nuevas dimensiones si es necesario
+                    if (!game.gameOver && !game.won) {
+                        // Las plataformas se ajustarán automáticamente en el próximo frame
+                    }
                     
                     // En móviles, mostrar mensaje si está en portrait o muy pequeño
                     if (viewportHeight > viewportWidth || viewportWidth < 600) {
                         rotateMessage.style.display = 'flex';
                         gameContainer.style.display = 'none';
-                        document.body.style.height = '100dvh';
-                        document.body.style.overflow = 'hidden';
                     } else {
                         rotateMessage.style.display = 'none';
                         gameContainer.style.display = 'block';
-                        document.body.style.height = '100dvh';
-                        document.body.style.overflow = 'hidden';
                     }
                 } else {
                     // En desktop, usar dimensiones estándar
@@ -1481,6 +1499,8 @@
                     gameContainer.style.display = 'block';
                     document.body.style.height = '100vh';
                     document.body.style.overflow = 'hidden';
+                    gameContainer.style.height = '';
+                    gameContainer.style.width = '';
                 }
             }
 
@@ -1502,12 +1522,26 @@
             });
             
             // Manejar cambios en el visual viewport (útil para móviles)
+            // Esto detecta cuando aparece/desaparece la barra del navegador
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', () => {
                     clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(checkOrientation, 100);
+                    resizeTimeout = setTimeout(checkOrientation, 50);
+                });
+                
+                window.visualViewport.addEventListener('scroll', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(checkOrientation, 50);
                 });
             }
+            
+            // Detectar cuando el usuario hace scroll (para móviles)
+            // Esto ayuda a recalcular cuando la barra del navegador se oculta
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(checkOrientation, 50);
+            }, { passive: true });
             
             // Prevenir zoom en iOS
             document.addEventListener('gesturestart', function (e) {
