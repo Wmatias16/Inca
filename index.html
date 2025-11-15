@@ -43,12 +43,18 @@
         @media (max-width: 768px) {
             body {
                 min-height: 100dvh;
+                height: 100dvh;
                 padding: 0;
+                margin: 0;
                 justify-content: stretch;
                 align-items: stretch;
+                overflow: hidden;
             }
             
             #gameContainer {
+                position: fixed;
+                top: 0;
+                left: 0;
                 width: 100dvw;
                 height: 100dvh;
                 min-height: 100dvh;
@@ -227,12 +233,13 @@
 
         .mobile-controls {
             position: absolute;
-            bottom: 40px;
+            bottom: 25px;
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 15px;
+            padding: 0 20px;
             pointer-events: none;
+            z-index: 15;
         }
 
         .control-group {
@@ -243,13 +250,13 @@
         }
 
         .control-btn {
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             background: rgba(139, 69, 19, 0.9);
             border: 3px solid #FFD700;
             border-radius: 50%;
             color: white;
-            font-size: 26px;
+            font-size: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -267,52 +274,52 @@
         }
 
         .jump-btn {
-            width: 85px;
-            height: 85px;
-            font-size: 32px;
+            width: 90px;
+            height: 90px;
+            font-size: 36px;
         }
 
         /* Controles optimizados para viewport completo */
         @media (max-width: 768px) {
             .mobile-controls {
-                bottom: 15px;
-                padding: 0 8px;
+                bottom: 20px;
+                padding: 0 15px;
             }
             
             .control-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-                border: 2px solid #FFD700;
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
+                border: 3px solid #FFD700;
             }
             
             .jump-btn {
-                width: 75px;
-                height: 75px;
-                font-size: 28px;
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
             }
         }
 
         @media (max-width: 480px) {
             .mobile-controls {
-                bottom: 10px;
-                padding: 0 5px;
+                bottom: 15px;
+                padding: 0 10px;
             }
             
             .control-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
+                width: 75px;
+                height: 75px;
+                font-size: 30px;
             }
             
             .jump-btn {
-                width: 70px;
-                height: 70px;
-                font-size: 26px;
+                width: 95px;
+                height: 95px;
+                font-size: 38px;
             }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .instructions {
                 display: none;
             }
@@ -414,6 +421,17 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // Imágenes de monedas (alimentos incas)
+        const coinImages = [];
+        const coinImageSources = ['papa.png', 'maiz.png', 'pimenton.png', 'quinoa.png'];
+        
+        // Cargar imágenes de monedas
+        coinImageSources.forEach(src => {
+            const img = new Image();
+            img.src = src;
+            coinImages.push(img);
+        });
 
         // Cargar imágenes de fondo de países
         const countryImages = {
@@ -423,6 +441,21 @@
             peru: new Image()
         };
 
+        // Cargar imagen del personaje
+        const playerImage = new Image();
+        playerImage.src = 'personaje.png';
+        
+        // Cargar imagen del personaje corriendo
+        const playerRunningImage = new Image();
+        playerRunningImage.src = 'personaje-corriendo.png';
+        
+        // Cargar imágenes del enemigo
+        const enemyImage = new Image();
+        enemyImage.src = 'enemigo.png';
+        
+        const enemyRunningImage = new Image();
+        enemyRunningImage.src = 'enemigo-corriendo.png';
+
         // Cargar las imágenes
         countryImages.chile.src = 'chile.jpg';
         countryImages.argentina.src = 'argentina.jpg';
@@ -431,12 +464,12 @@
 
         // Variable para verificar si las imágenes están cargadas
         let imagesLoaded = 0;
-        const totalImages = 4;
+        const totalImages = 12; // Ahora incluye imágenes del personaje, enemigo y 4 monedas
 
         function onImageLoad() {
             imagesLoaded++;
             if (imagesLoaded === totalImages) {
-                console.log('Todas las imágenes de países han sido cargadas');
+                console.log('Todas las imágenes han sido cargadas');
             }
         }
 
@@ -445,6 +478,37 @@
             img.addEventListener('load', onImageLoad);
             img.addEventListener('error', (e) => {
                 console.warn('Error cargando imagen:', e.target.src);
+            });
+        });
+
+        // Agregar evento de carga para la imagen del personaje
+        playerImage.addEventListener('load', onImageLoad);
+        playerImage.addEventListener('error', (e) => {
+            console.warn('Error cargando imagen del personaje:', e.target.src);
+        });
+        
+        // Agregar evento de carga para la imagen del personaje corriendo
+        playerRunningImage.addEventListener('load', onImageLoad);
+        playerRunningImage.addEventListener('error', (e) => {
+            console.warn('Error cargando imagen del personaje corriendo:', e.target.src);
+        });
+        
+        // Agregar eventos de carga para las imágenes del enemigo
+        enemyImage.addEventListener('load', onImageLoad);
+        enemyImage.addEventListener('error', (e) => {
+            console.warn('Error cargando imagen del enemigo:', e.target.src);
+        });
+        
+        enemyRunningImage.addEventListener('load', onImageLoad);
+        enemyRunningImage.addEventListener('error', (e) => {
+            console.warn('Error cargando imagen del enemigo corriendo:', e.target.src);
+        });
+        
+        // Agregar eventos de carga para las imágenes de monedas
+        coinImages.forEach((img, index) => {
+            img.addEventListener('load', onImageLoad);
+            img.addEventListener('error', (e) => {
+                console.warn('Error cargando imagen de moneda:', e.target.src);
             });
         });
 
@@ -462,7 +526,9 @@
                 doubleJumpPower: 10,
                 canDoubleJump: false,
                 hasDoubleJumped: false,
-                color: '#FF6B35'
+                color: '#FF6B35',
+                facingRight: true,
+                isMoving: false
             },
             enemy: {
                 x: -100,
@@ -473,7 +539,9 @@
                 velocityY: 0,
                 color: '#8B0000',
                 active: false,
-                activationTime: 3000
+                activationTime: 3000,
+                facingRight: false,
+                isMoving: false
             },
             coins: [],
             platforms: [],
@@ -579,11 +647,15 @@
                     }
                 }
                 
+                // Seleccionar imagen aleatoria para la moneda
+                const randomImageIndex = Math.floor(Math.random() * coinImages.length);
+                
                 game.coins.push({
                     x: coinX,
                     y: coinY,
-                    size: 15,
-                    collected: false
+                    size: 20,
+                    collected: false,
+                    imageIndex: randomImageIndex
                 });
             }
         }
@@ -732,11 +804,17 @@
 
         // Actualizar posición del jugador
         function updatePlayer() {
+            game.player.isMoving = false;
+            
             if (game.keys['ArrowLeft'] && game.player.x > 0) {
                 game.player.x -= game.player.speed;
+                game.player.facingRight = false;
+                game.player.isMoving = true;
             }
             if (game.keys['ArrowRight'] && game.player.x < canvas.width - game.player.width) {
                 game.player.x += game.player.speed;
+                game.player.facingRight = true;
+                game.player.isMoving = true;
             }
 
             applyPhysics(game.player);
@@ -755,6 +833,8 @@
 
             if (!game.enemy.active) return;
 
+            game.enemy.isMoving = false;
+
             // IA del enemigo
             const dx = game.player.x - game.enemy.x;
             
@@ -762,8 +842,12 @@
             if (Math.abs(dx) > 10) {
                 if (dx > 0 && game.enemy.x < canvas.width - game.enemy.width) {
                     game.enemy.x += game.enemy.speed;
+                    game.enemy.facingRight = true;
+                    game.enemy.isMoving = true;
                 } else if (dx < 0 && game.enemy.x > 0) {
                     game.enemy.x -= game.enemy.speed;
+                    game.enemy.facingRight = false;
+                    game.enemy.isMoving = true;
                 }
             }
 
@@ -789,10 +873,10 @@
             game.coins.forEach(coin => {
                 if (!coin.collected) {
                     if (checkCollision(game.player, {
-                        x: coin.x,
-                        y: coin.y,
-                        width: coin.size,
-                        height: coin.size
+                        x: coin.x - coin.size,
+                        y: coin.y - coin.size,
+                        width: coin.size * 2,
+                        height: coin.size * 2
                     })) {
                         coin.collected = true;
                         game.score++;
@@ -831,6 +915,8 @@
             game.enemy.y = 100;
             game.enemy.velocityY = 0;
             game.enemy.jumping = false;
+            game.enemy.facingRight = false;
+            game.enemy.isMoving = false;
             
             generatePlatforms();
             generateCoins();
@@ -849,19 +935,53 @@
 
         // Dibujar jugador (Inca)
         function drawPlayer() {
-            // Cuerpo
-            ctx.fillStyle = '#FF6B35';
-            ctx.fillRect(game.player.x, game.player.y + 10, game.player.width, game.player.height - 10);
+            ctx.save();
             
-            // Cabeza
-            ctx.fillStyle = '#D2691E';
-            ctx.beginPath();
-            ctx.arc(game.player.x + game.player.width/2, game.player.y, 10, 0, Math.PI * 2);
-            ctx.fill();
+            // Determinar qué imagen usar: corriendo o estático, y si está saltando
+            let currentImage = playerImage;
+            const isMovingOrJumping = game.player.isMoving || game.player.jumping;
             
-            // Tocado inca
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(game.player.x + 5, game.player.y - 8, game.player.width - 10, 5);
+            if (isMovingOrJumping && playerRunningImage.complete && playerRunningImage.naturalWidth > 0) {
+                currentImage = playerRunningImage;
+            }
+            
+            // Si el personaje mira a la izquierda, voltear la imagen
+            if (!game.player.facingRight) {
+                // Trasladar al centro del personaje, voltear horizontalmente, y trasladar de vuelta
+                ctx.translate(game.player.x + game.player.width, game.player.y);
+                ctx.scale(-1, 1);
+                ctx.translate(0, 0);
+                
+                // Dibujar la imagen volteada
+                if (currentImage.complete && currentImage.naturalWidth > 0) {
+                    ctx.drawImage(
+                        currentImage,
+                        0,
+                        0,
+                        game.player.width,
+                        game.player.height
+                    );
+                } else {
+                    // Fallback
+                    drawPlayerFallback(0, 0);
+                }
+            } else {
+                // Dibujar normalmente (mirando a la derecha)
+                if (currentImage.complete && currentImage.naturalWidth > 0) {
+                    ctx.drawImage(
+                        currentImage,
+                        game.player.x,
+                        game.player.y,
+                        game.player.width,
+                        game.player.height
+                    );
+                } else {
+                    // Fallback
+                    drawPlayerFallback(game.player.x, game.player.y);
+                }
+            }
+            
+            ctx.restore();
             
             // Efecto visual para salto doble
             if (game.player.hasDoubleJumped && game.player.velocityY < 0) {
@@ -887,37 +1007,119 @@
                 ctx.globalAlpha = 1.0;
             }
         }
+        
+        // Función auxiliar para dibujar el personaje con formas (fallback)
+        function drawPlayerFallback(x, y) {
+            // Cuerpo
+            ctx.fillStyle = '#FF6B35';
+            ctx.fillRect(x, y + 10, game.player.width, game.player.height - 10);
+            
+            // Cabeza
+            ctx.fillStyle = '#D2691E';
+            ctx.beginPath();
+            ctx.arc(x + game.player.width/2, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Tocado inca
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(x + 5, y - 8, game.player.width - 10, 5);
+        }
 
         // Dibujar enemigo (Español)
         function drawEnemy() {
             if (!game.enemy.active) return;
             
+            ctx.save();
+            
+            // Determinar qué imagen usar: corriendo o estático, y si está saltando
+            let currentEnemyImage = enemyImage;
+            const isMovingOrJumping = game.enemy.isMoving || game.enemy.jumping;
+            
+            if (isMovingOrJumping && enemyRunningImage.complete && enemyRunningImage.naturalWidth > 0) {
+                currentEnemyImage = enemyRunningImage;
+            }
+            
+            // Si el enemigo mira a la derecha, voltear la imagen (enemigo mira izquierda por defecto)
+            if (game.enemy.facingRight) {
+                // Trasladar al centro del enemigo, voltear horizontalmente, y trasladar de vuelta
+                ctx.translate(game.enemy.x + game.enemy.width, game.enemy.y);
+                ctx.scale(-1, 1);
+                ctx.translate(0, 0);
+                
+                // Dibujar la imagen volteada
+                if (currentEnemyImage.complete && currentEnemyImage.naturalWidth > 0) {
+                    ctx.drawImage(
+                        currentEnemyImage,
+                        0,
+                        0,
+                        game.enemy.width,
+                        game.enemy.height
+                    );
+                } else {
+                    // Fallback
+                    drawEnemyFallback(0, 0);
+                }
+            } else {
+                // Dibujar normalmente (mirando a la izquierda)
+                if (currentEnemyImage.complete && currentEnemyImage.naturalWidth > 0) {
+                    ctx.drawImage(
+                        currentEnemyImage,
+                        game.enemy.x,
+                        game.enemy.y,
+                        game.enemy.width,
+                        game.enemy.height
+                    );
+                } else {
+                    // Fallback
+                    drawEnemyFallback(game.enemy.x, game.enemy.y);
+                }
+            }
+            
+            ctx.restore();
+        }
+        
+        // Función auxiliar para dibujar el enemigo con formas (fallback)
+        function drawEnemyFallback(x, y) {
             // Cuerpo
             ctx.fillStyle = '#8B0000';
-            ctx.fillRect(game.enemy.x, game.enemy.y + 10, game.enemy.width, game.enemy.height - 10);
+            ctx.fillRect(x, y + 10, game.enemy.width, game.enemy.height - 10);
             
             // Cabeza
             ctx.fillStyle = '#FFF5EE';
             ctx.beginPath();
-            ctx.arc(game.enemy.x + game.enemy.width/2, game.enemy.y, 10, 0, Math.PI * 2);
+            ctx.arc(x + game.enemy.width/2, y, 10, 0, Math.PI * 2);
             ctx.fill();
             
             // Casco
             ctx.fillStyle = '#696969';
-            ctx.fillRect(game.enemy.x + 5, game.enemy.y - 10, game.enemy.width - 10, 8);
+            ctx.fillRect(x + 5, y - 10, game.enemy.width - 10, 8);
         }
 
         // Dibujar monedas
         function drawCoins() {
             game.coins.forEach(coin => {
                 if (!coin.collected) {
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(coin.x, coin.y, coin.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = '#FFA500';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                    const coinImg = coinImages[coin.imageIndex];
+                    
+                    // Si la imagen está cargada, usarla
+                    if (coinImg && coinImg.complete && coinImg.naturalWidth > 0) {
+                        ctx.drawImage(
+                            coinImg,
+                            coin.x - coin.size,
+                            coin.y - coin.size,
+                            coin.size * 2,
+                            coin.size * 2
+                        );
+                    } else {
+                        // Fallback: dibujar círculo dorado
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        ctx.arc(coin.x, coin.y, coin.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#FFA500';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
                 }
             });
         }
